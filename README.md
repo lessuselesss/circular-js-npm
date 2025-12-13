@@ -62,7 +62,7 @@ console.log(walletExists)
 
 ## API Documentation
 
-Find more on [GitBook](https://circular-protocol.gitbook.io/circular-sdk/api-docs/node.js)
+Find more on [GitBook](https://circular-protocol.gitbook.io/standard-apis)
 
 ---
 
