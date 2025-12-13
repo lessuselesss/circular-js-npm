@@ -4,8 +4,7 @@
   "description": "Circular Protocol Blockchain Official NodeJS API",
   "main": "./lib/index.js",
   "scripts": {
-    "build:cjs": "webpack --config webpack.config.cjs.js",
-    "build:esm": "webpack --config webpack.config.esm.js",
+    "build": "webpack --config webpack.config.cjs",
     "test": "jest"
   },
   "repository": {
@@ -41,7 +40,14 @@
     }
   },
   "devDependencies": {
+    "buffer": "^6.0.3",
+    "crypto-browserify": "^3.12.1",
     "jest": "^29.7.0",
-    "nock": "^13.5.5"
+    "nock": "^13.5.5",
+    "process": "^0.11.10",
+    "stream-browserify": "^3.0.0",
+    "vm-browserify": "^1.1.2",
+    "webpack": "^5.103.0",
+    "webpack-cli": "^6.0.1"
   }
 }

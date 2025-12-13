@@ -1,0 +1,1072 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Circular Protocol API Tester</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #0a0e27;
+            --bg-secondary: #151932;
+            --bg-tertiary: #1e2442;
+            --accent-primary: #6366f1;
+            --accent-secondary: #8b5cf6;
+            --accent-gradient: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            --text-primary: #e2e8f0;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --border-color: rgba(99, 102, 241, 0.2);
+
+            /* Group-specific colors */
+            --color-utility: #06b6d4;
+            --color-crypto: #a855f7;
+            --color-wallet: #10b981;
+            --color-contract: #f97316;
+            --color-domain: #14b8a6;
+            --color-asset: #eab308;
+            --color-voucher: #ec4899;
+            --color-block: #6b7280;
+            --color-analytics: #3b82f6;
+            --color-transaction: #ef4444;
+            --success: #10b981;
+            --error: #ef4444;
+            --warning: #f59e0b;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 3rem;
+            padding: 2rem;
+            background: var(--bg-secondary);
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+            position: relative;
+            overflow: hidden;
+        }
+
+        header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--accent-gradient);
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+        }
+
+        .subtitle {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+        }
+
+        .config-section {
+            background: var(--bg-secondary);
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+            border: 1px solid var(--border-color);
+            backdrop-filter: blur(10px);
+        }
+
+        .config-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        label {
+            font-weight: 500;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        input,
+        textarea,
+        select {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            font-family: 'Inter', monospace;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+        }
+
+        input:focus,
+        textarea:focus,
+        select:focus {
+            outline: none;
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        }
+
+        .api-group {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            margin-bottom: 1.5rem;
+            border: 1px solid var(--border-color);
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .api-group:hover {
+            border-color: var(--group-color, var(--accent-primary));
+        }
+
+        .group-header {
+            background: var(--bg-tertiary);
+            padding: 1.25rem 1.5rem;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            user-select: none;
+            transition: all 0.3s ease;
+            border-left: 4px solid var(--group-color, var(--accent-primary));
+        }
+
+        .group-header:hover {
+            background: rgba(var(--group-color-rgb), 0.1);
+        }
+
+        .group-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--group-color, var(--text-primary));
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .group-icon {
+            font-size: 1.5rem;
+        }
+
+        .toggle-icon {
+            font-size: 1.5rem;
+            transition: transform 0.3s ease;
+        }
+
+        .api-group.collapsed .toggle-icon {
+            transform: rotate(-90deg);
+        }
+
+        .group-content {
+            padding: 1.5rem;
+            display: grid;
+            gap: 1.5rem;
+        }
+
+        .api-method {
+            background: var(--bg-tertiary);
+            border-radius: 10px;
+            padding: 1.5rem;
+            border: 1px solid rgba(var(--group-color-rgb), 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .api-method:hover {
+            border-color: var(--group-color, var(--accent-primary));
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(var(--group-color-rgb), 0.25);
+        }
+
+        .method-header {
+            margin-bottom: 1rem;
+        }
+
+        .method-name {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--group-color, var(--accent-primary));
+            font-family: 'Courier New', monospace;
+            margin-bottom: 0.5rem;
+        }
+
+        .method-description {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .parameters {
+            display: grid;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .param-row {
+            display: grid;
+            grid-template-columns: 120px 1fr;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .param-name {
+            color: var(--text-secondary);
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+        }
+
+        button {
+            background: var(--group-color, var(--accent-primary));
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.95rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(var(--group-color-rgb), 0.5);
+            filter: brightness(1.1);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .response-section {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-top: 2rem;
+            border: 1px solid var(--border-color);
+        }
+
+        .response-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .response-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .copy-btn {
+            padding: 0.5rem 1rem;
+            font-size: 0.85rem;
+        }
+
+        .response-content {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1.5rem;
+            max-height: 500px;
+            overflow: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+
+        .response-content pre {
+            margin: 0;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-secondary);
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(99, 102, 241, 0.2);
+            border-top-color: var(--accent-primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .status-success {
+            background: rgba(16, 185, 129, 0.2);
+            color: var(--success);
+        }
+
+        .status-error {
+            background: rgba(239, 68, 68, 0.2);
+            color: var(--error);
+        }
+
+        /* Scrollbar styling */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-tertiary);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--accent-primary);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--accent-secondary);
+        }
+
+        .json-key {
+            color: #8b5cf6;
+        }
+
+        .json-string {
+            color: #10b981;
+        }
+
+        .json-number {
+            color: #f59e0b;
+        }
+
+        .json-boolean {
+            color: #ef4444;
+        }
+
+        .json-null {
+            color: #64748b;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        /* Group-specific color classes */
+        .group-utility {
+            --group-color: var(--color-utility);
+            --group-color-rgb: 6, 182, 212;
+        }
+
+        .group-crypto {
+            --group-color: var(--color-crypto);
+            --group-color-rgb: 168, 85, 247;
+        }
+
+        .group-wallet {
+            --group-color: var(--color-wallet);
+            --group-color-rgb: 16, 185, 129;
+        }
+
+        .group-contract {
+            --group-color: var(--color-contract);
+            --group-color-rgb: 249, 115, 22;
+        }
+
+        .group-domain {
+            --group-color: var(--color-domain);
+            --group-color-rgb: 20, 184, 166;
+        }
+
+        .group-asset {
+            --group-color: var(--color-asset);
+            --group-color-rgb: 234, 179, 8;
+        }
+
+        .group-voucher {
+            --group-color: var(--color-voucher);
+            --group-color-rgb: 236, 72, 153;
+        }
+
+        .group-block {
+            --group-color: var(--color-block);
+            --group-color-rgb: 107, 114, 128;
+        }
+
+        .group-analytics {
+            --group-color: var(--color-analytics);
+            --group-color-rgb: 59, 130, 246;
+        }
+
+        .group-transaction {
+            --group-color: var(--color-transaction);
+            --group-color-rgb: 239, 68, 68;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <h1>🔵 Circular Protocol API Tester</h1>
+            <p class="subtitle">Interactive Testing Interface for Standard APIs v1.0.14</p>
+        </header>
+
+        <!-- Configuration Section -->
+        <div class="config-section">
+            <h2 style="margin-bottom: 1rem;">⚙️ Configuration</h2>
+            <div class="config-grid">
+                <div class="input-group">
+                    <label for="nagUrl">NAG URL</label>
+                    <input type="text" id="nagUrl" value="https://nag.circularlabs.io/NAG.php?cep="
+                        placeholder="Enter NAG URL">
+                </div>
+                <div class="input-group">
+                    <label for="nagKey">NAG Key</label>
+                    <input type="text" id="nagKey" placeholder="Enter your NAG API Key">
+                </div>
+            </div>
+        </div>
+
+        <!-- API Groups -->
+        <div id="apiGroups"></div>
+
+        <!-- Response Section -->
+        <div class="response-section">
+            <div class="response-header">
+                <h2 class="response-title">📊 Response</h2>
+                <button class="copy-btn" onclick="copyResponse()">Copy</button>
+            </div>
+            <div class="response-content" id="responseContent">
+                <div style="color: var(--text-muted); text-align: center; padding: 2rem;">
+                    Execute an API method to see the response here
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="dist/circular-api-bundle.js"></script>
+
+    <script type="module">
+        // API Methods organized by functional groups
+        const apiMethods = {
+            "Utility Functions": {
+                icon: "🔧",
+                methods: [
+                    {
+                        name: "hexFix",
+                        description: "Remove '0x' prefix from hexadecimal strings",
+                        params: [{ name: "word", type: "text", placeholder: "0x123abc" }],
+                        local: true
+                    },
+                    {
+                        name: "stringToHex",
+                        description: "Convert string to hexadecimal representation",
+                        params: [{ name: "str", type: "text", placeholder: "Hello World" }],
+                        local: true
+                    },
+                    {
+                        name: "hexToString",
+                        description: "Convert hexadecimal to string",
+                        params: [{ name: "hex", type: "text", placeholder: "48656c6c6f" }],
+                        local: true
+                    },
+                    {
+                        name: "getFormattedTimestamp",
+                        description: "Get formatted UTC timestamp (YYYY:MM:DD-hh:mm:ss)",
+                        params: [],
+                        local: true
+                    }
+                ]
+            },
+            "Cryptographic Functions": {
+                icon: "🔐",
+                methods: [
+                    {
+                        name: "hashString",
+                        description: "Hash a string using SHA256",
+                        params: [{ name: "str", type: "text", placeholder: "String to hash" }],
+                        local: true
+                    },
+                    {
+                        name: "signMessage",
+                        description: "Sign a message using secp256k1",
+                        params: [
+                            { name: "message", type: "text", placeholder: "Message to sign" },
+                            { name: "privateKey", type: "text", placeholder: "Private key (hex)" }
+                        ],
+                        local: true
+                    },
+                    {
+                        name: "verifySignature",
+                        description: "Verify a message signature",
+                        params: [
+                            { name: "publicKey", type: "text", placeholder: "Public key (hex)" },
+                            { name: "message", type: "text", placeholder: "Original message" },
+                            { name: "signature", type: "text", placeholder: "Signature to verify" }
+                        ],
+                        local: true
+                    },
+                    {
+                        name: "getPublicKey",
+                        description: "Derive public key from private key",
+                        params: [{ name: "privateKey", type: "text", placeholder: "Private key (hex)" }],
+                        local: true
+                    }
+                ]
+            },
+            "Wallet Operations": {
+                icon: "💼",
+                methods: [
+                    {
+                        name: "checkWallet",
+                        description: "Check if a wallet is registered on the blockchain",
+                        params: [
+                            { name: "blockchain", type: "text", placeholder: "e.g., circular-protocol" },
+                            { name: "address", type: "text", placeholder: "Wallet address" }
+                        ]
+                    },
+                    {
+                        name: "getWallet",
+                        description: "Get wallet information",
+                        params: [
+                            { name: "blockchain", type: "text", placeholder: "e.g., circular-protocol" },
+                            { name: "address", type: "text", placeholder: "Wallet address" }
+                        ]
+                    },
+                    {
+                        name: "getLatestTransactions",
+                        description: "Get latest transactions for a wallet",
+                        params: [
+                            { name: "blockchain", type: "text", placeholder: "e.g., circular-protocol" },
+                            { name: "address", type: "text", placeholder: "Wallet address" }
+                        ]
+                    },
+                    {
+                        name: "getWalletBalance",
+                        description: "Get wallet balance for a specific asset",
+                        params: [
+                            { name: "blockchain", type: "text", placeholder: "e.g., circular-protocol" },
+                            { name: "address", type: "text", placeholder: "Wallet address" },
+                            { name: "asset", type: "text", placeholder: "e.g., CIRX" }
+                        ]
+                    },
+                    {
+                        name: "getWalletNonce",
+                        description: "Get wallet nonce value",
+                        params: [
+                            { name: "blockchain", type: "text", placeholder: "e.g., circular-protocol" },
+                            { name: "address", type: "text", placeholder: "Wallet address" }
+                        ]
+                    },
+                    {
+                        name: "registerWallet",
+                        description: "Register a new wallet on the blockchain",
+                        params: [
+                            { name: "blockchain", type: "text", placeholder: "e.g., circular-protocol" },
+                            { name: "publicKey", type: "text", placeholder: "Public key (hex)" }
+                        ]
+                    }
+                ]
+            },
+            "Contract Operations": {
+                icon: "📜",
+                methods: [
+                    {
+                        name: "testContract",
+                        description: "Test smart contract execution",
+                        params: [
+                            { name: "blockchain", type: "text", placeholder: "e.g., circular-protocol" },
+                            { name: "from", type: "text", placeholder: "Developer wallet address" },
+                            { name: "project", type: "textarea", placeholder: "Smart contract project code" }
+                        ]
+                    },
+                    {
+                        name: "callContract",
+                        description: "Make a local smart contract call",
+                        params: [
+                            { name: "blockchain", type: "text", placeholder: "e.g., circular-protocol" },
+                            { name: "from", type: "text", placeholder: "Caller wallet address" },
+                            { name: "address", type: "text", placeholder: "Contract address" },
+                            { name: "request", type: "text", placeholder: "Contract endpoint" }
+                        ]
+                    }
+                ]
+            },
+            "Domain Operations": {
+                icon: "🌐",
+                methods: [
+                    {
+                        name: "getDomain",
+                        description: "Resolve domain name to wallet address",
+                        params: [
+                            { name: "blockchain", type: "text", placeholder: "e.g., circular-protocol" },
+                            { name: "name", type: "text", placeholder: "Domain name" }
+                        ]
+                    }
+                ]
+            },
+            "Asset Operations": {
+                icon: "💎",
+                methods: [
+                    {
+                        name: "getAssetList",
+                        description: "Get list of all assets on blockchain",
+                        params: [
+                            { name: "chain", type: "text", placeholder: "e.g., circular-protocol" }
+                        ]
+                    },
+                    {
+                        name: "getAsset",
+                        description: "Get asset descriptor",
+                        params: [
+                            { name: "chain", type: "text", placeholder: "e.g., circular-protocol" },
+                            { name: "name", type: "text", placeholder: "Asset name (e.g., CIRX)" }
+                        ]
+                    },
+                    {
+                        name: "getAssetSupply",
+                        description: "Get asset supply information",
+                        params: [
+                            { name: "chain", type: "text", placeholder: "e.g., circular-protocol" },
+                            { name: "name", type: "text", placeholder: "Asset name (e.g., CIRX)" }
+                        ]
+                    }
+                ]
+            },
+            "Voucher Operations": {
+                icon: "🎟️",
+                methods: [
+                    {
+                        name: "getVoucher",
+                        description: "Get voucher information",
+                        params: [
+                            { name: "chain", type: "text", placeholder: "e.g., circular-protocol" },
+                            { name: "code", type: "text", placeholder: "Voucher code" }
+                        ]
+                    }
+                ]
+            },
+            "Block Operations": {
+                icon: "⛓️",
+                methods: [
+                    {
+                        name: "getBlockRange",
+                        description: "Get blocks in a range",
+                        params: [
+                            { name: "chain", type: "text", placeholder: "e.g., circular-protocol" },
+                            { name: "start", type: "number", placeholder: "Start block" },
+                            { name: "end", type: "number", placeholder: "End block" }
+                        ]
+                    },
+                    {
+                        name: "getBlock",
+                        description: "Get a specific block",
+                        params: [
+                            { name: "chain", type: "text", placeholder: "e.g., circular-protocol" },
+                            { name: "num", type: "number", placeholder: "Block number" }
+                        ]
+                    },
+                    {
+                        name: "getBlockCount",
+                        description: "Get blockchain block height",
+                        params: [
+                            { name: "chain", type: "text", placeholder: "e.g., circular-protocol" }
+                        ]
+                    }
+                ]
+            },
+            "Analytics": {
+                icon: "📈",
+                methods: [
+                    {
+                        name: "getAnalytics",
+                        description: "Get blockchain analytics data",
+                        params: [
+                            { name: "chain", type: "text", placeholder: "e.g., circular-protocol" }
+                        ]
+                    },
+                    {
+                        name: "getBlockchains",
+                        description: "Get list of available blockchains",
+                        params: []
+                    }
+                ]
+            },
+            "Transaction Operations": {
+                icon: "💸",
+                methods: [
+                    {
+                        name: "getPendingTransaction",
+                        description: "Get pending transaction by ID",
+                        params: [
+                            { name: "chain", type: "text", placeholder: "e.g., circular-protocol" },
+                            { name: "txID", type: "text", placeholder: "Transaction ID" }
+                        ]
+                    },
+                    {
+                        name: "getTransactionbyID",
+                        description: "Get transaction by ID",
+                        params: [
+                            { name: "chain", type: "text", placeholder: "e.g., circular-protocol" },
+                            { name: "txID", type: "text", placeholder: "Transaction ID" },
+                            { name: "start", type: "number", placeholder: "Start block" },
+                            { name: "end", type: "number", placeholder: "End block" }
+                        ]
+                    },
+                    {
+                        name: "getTransactionbyNode",
+                        description: "Get transactions by node",
+                        params: [
+                            { name: "chain", type: "text", placeholder: "e.g., circular-protocol" },
+                            { name: "nodeID", type: "text", placeholder: "Node ID" },
+                            { name: "start", type: "number", placeholder: "Start block" },
+                            { name: "end", type: "number", placeholder: "End block" }
+                        ]
+                    },
+                    {
+                        name: "getTransactionbyAddress",
+                        description: "Get transactions by address",
+                        params: [
+                            { name: "chain", type: "text", placeholder: "e.g., circular-protocol" },
+                            { name: "address", type: "text", placeholder: "Wallet address" },
+                            { name: "start", type: "number", placeholder: "Start block" },
+                            { name: "end", type: "number", placeholder: "End block" }
+                        ]
+                    },
+                    {
+                        name: "getTransactionbyDate",
+                        description: "Get transactions by date range",
+                        params: [
+                            { name: "chain", type: "text", placeholder: "e.g., circular-protocol" },
+                            { name: "address", type: "text", placeholder: "Wallet address" },
+                            { name: "startDate", type: "text", placeholder: "Start date" },
+                            { name: "endDate", type: "text", placeholder: "End date" }
+                        ]
+                    },
+                    {
+                        name: "sendTransaction",
+                        description: "Submit a transaction to the blockchain",
+                        params: [
+                            { name: "id", type: "text", placeholder: "Transaction ID" },
+                            { name: "from", type: "text", placeholder: "Sender address" },
+                            { name: "to", type: "text", placeholder: "Recipient address" },
+                            { name: "timestamp", type: "text", placeholder: "Formatted timestamp" },
+                            { name: "type", type: "text", placeholder: "Transaction type" },
+                            { name: "payload", type: "text", placeholder: "Transaction payload" },
+                            { name: "nonce", type: "text", placeholder: "Wallet nonce" },
+                            { name: "signature", type: "text", placeholder: "Transaction signature" },
+                            { name: "chain", type: "text", placeholder: "Blockchain identifier" }
+                        ]
+                    },
+                    {
+                        name: "getTransactionOutcome",
+                        description: "Poll for transaction outcome",
+                        params: [
+                            { name: "chain", type: "text", placeholder: "e.g., circular-protocol" },
+                            { name: "txID", type: "text", placeholder: "Transaction ID" },
+                            { name: "timeoutSec", type: "number", placeholder: "Timeout (seconds)" },
+                            { name: "intervalSec", type: "number", placeholder: "Poll interval (seconds)" }
+                        ]
+                    }
+                ]
+            }
+        };
+
+        // Browser-compatible Circular Protocol API implementation
+        // Import from bundle
+        const CircularAPI = window.CircularProtocolAPI;
+
+
+        // Map group names to CSS classes for color coding
+        const groupColorClasses = {
+            "Utility Functions": "group-utility",
+            "Cryptographic Functions": "group-crypto",
+            "Wallet Operations": "group-wallet",
+            "Contract Operations": "group-contract",
+            "Domain Operations": "group-domain",
+            "Asset Operations": "group-asset",
+            "Voucher Operations": "group-voucher",
+            "Block Operations": "group-block",
+            "Analytics": "group-analytics",
+            "Transaction Operations": "group-transaction"
+        };
+
+        console.log('✅ Browser-compatible Circular Protocol API ready');
+
+        // Render API groups
+        function renderAPIGroups() {
+            const container = document.getElementById('apiGroups');
+
+            for (const [groupName, groupData] of Object.entries(apiMethods)) {
+                const groupDiv = document.createElement('div');
+                groupDiv.className = `api-group ${groupColorClasses[groupName] || ''}`;
+
+                const header = document.createElement('div');
+                header.className = 'group-header';
+                header.innerHTML = `
+                    <div class="group-title">
+                        <span class="group-icon">${groupData.icon}</span>
+                        <span>${groupName}</span>
+                        <span class="status-badge" style="background: rgba(99, 102, 241, 0.2); color: var(--accent-primary);">${groupData.methods.length}</span>
+                    </div>
+                    <span class="toggle-icon">▼</span>
+                `;
+
+                header.addEventListener('click', () => {
+                    groupDiv.classList.toggle('collapsed');
+                    content.classList.toggle('hidden');
+                });
+
+                const content = document.createElement('div');
+                content.className = 'group-content';
+
+                groupData.methods.forEach(method => {
+                    const methodDiv = createMethodElement(method);
+                    content.appendChild(methodDiv);
+                });
+
+                groupDiv.appendChild(header);
+                groupDiv.appendChild(content);
+                container.appendChild(groupDiv);
+            }
+        }
+
+        // Create method element
+        function createMethodElement(method) {
+            const div = document.createElement('div');
+            div.className = 'api-method';
+
+            const header = document.createElement('div');
+            header.className = 'method-header';
+            header.innerHTML = `
+                <div class="method-name">${method.name}(${method.params.map(p => p.name).join(', ')})</div>
+                <div class="method-description">${method.description}</div>
+            `;
+
+            const paramsDiv = document.createElement('div');
+            paramsDiv.className = 'parameters';
+
+            method.params.forEach((param, idx) => {
+                const paramRow = document.createElement('div');
+                paramRow.className = 'param-row';
+
+                const label = document.createElement('div');
+                label.className = 'param-name';
+                label.textContent = param.name;
+
+                const inputGroup = document.createElement('div');
+                inputGroup.className = 'input-group';
+
+                let input;
+                if (param.type === 'textarea') {
+                    input = document.createElement('textarea');
+                    input.rows = 3;
+                } else {
+                    input = document.createElement('input');
+                    input.type = param.type || 'text';
+                }
+
+                input.placeholder = param.placeholder || '';
+                input.id = `${method.name}_${param.name}`;
+                inputGroup.appendChild(input);
+
+                paramRow.appendChild(label);
+                paramRow.appendChild(inputGroup);
+                paramsDiv.appendChild(paramRow);
+            });
+
+            const executeBtn = document.createElement('button');
+            executeBtn.textContent = 'Execute';
+            executeBtn.onclick = () => executeMethod(method);
+
+            div.appendChild(header);
+            if (method.params.length > 0) {
+                div.appendChild(paramsDiv);
+            }
+            div.appendChild(executeBtn);
+
+            return div;
+        }
+
+        // Execute API method
+        async function executeMethod(method) {
+            // Get NAG URL validation
+            const nagUrl = document.getElementById('nagUrl').value;
+            if (!nagUrl) {
+                displayResponse({ error: 'Please configure NAG URL in the configuration section.' }, false);
+                return;
+            }
+
+            // Collect parameters
+            const params = method.params.map(param => {
+                const input = document.getElementById(`${method.name}_${param.name}`);
+                const value = input.value;
+
+                // Convert to appropriate type
+                if (param.type === 'number') {
+                    return parseInt(value, 10);
+                }
+                return value;
+            });
+
+            // Show loading
+            displayLoading();
+
+            try {
+                let result;
+
+                if (method.local) {
+                    // Execute local utility functions
+                    result = await executeLocalMethod(method.name, params);
+                } else {
+                    // Execute API method
+                    result = await CircularAPI[method.name](...params);
+                }
+
+                displayResponse(result, true);
+            } catch (error) {
+                displayResponse({
+                    error: error.message,
+                    stack: error.stack
+                }, false);
+            }
+        }
+
+        // Execute local utility methods
+        async function executeLocalMethod(methodName, params) {
+            switch (methodName) {
+                case 'hexFix':
+                case 'stringToHex':
+                case 'hexToString':
+                case 'getFormattedTimestamp':
+                    return CircularAPI[methodName](...params);
+                case 'hashString':
+                case 'signMessage':
+                case 'verifySignature':
+                case 'getPublicKey':
+                    return await CircularAPI[methodName](...params);
+                default:
+                    throw new Error(`Unknown method: ${methodName}`);
+            }
+        }
+
+        // Display loading state
+        function displayLoading() {
+            const container = document.getElementById('responseContent');
+            container.innerHTML = `
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p style="margin-top: 1rem;">Executing request...</p>
+                </div>
+            `;
+        }
+
+        // Display response
+        function displayResponse(data, success) {
+            const container = document.getElementById('responseContent');
+            const badge = success
+                ? '<span class="status-badge status-success">Success</span>'
+                : '<span class="status-badge status-error">Error</span>';
+
+            const formatted = syntaxHighlight(JSON.stringify(data, null, 2));
+
+            container.innerHTML = `
+                <div style="margin-bottom: 1rem;">${badge}</div>
+                <pre>${formatted}</pre>
+            `;
+        }
+
+        // Syntax highlighting for JSON
+        function syntaxHighlight(json) {
+            json = json.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            return json.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, function (match) {
+                let cls = 'json-number';
+                if (/^"/.test(match)) {
+                    if (/:$/.test(match)) {
+                        cls = 'json-key';
+                    } else {
+                        cls = 'json-string';
+                    }
+                } else if (/true|false/.test(match)) {
+                    cls = 'json-boolean';
+                } else if (/null/.test(match)) {
+                    cls = 'json-null';
+                }
+                return '<span class="' + cls + '">' + match + '</span>';
+            });
+        }
+
+        // Copy response to clipboard
+        window.copyResponse = function () {
+            const content = document.getElementById('responseContent').innerText;
+            navigator.clipboard.writeText(content).then(() => {
+                const btn = document.querySelector('.copy-btn');
+                const originalText = btn.textContent;
+                btn.textContent = 'Copied!';
+                setTimeout(() => {
+                    btn.textContent = originalText;
+                }, 2000);
+            });
+        };
+
+        // Initialize
+        renderAPIGroups();
+    </script>
+</body>
+
+</html>

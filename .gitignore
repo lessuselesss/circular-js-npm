@@ -9,3 +9,4 @@ yarn-error.log*
 .vscode/*
 GEMINI.md
 CLAUDE.md
+agents-md.xml
