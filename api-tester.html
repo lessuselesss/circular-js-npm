@@ -457,6 +457,41 @@
             --group-color: var(--color-transaction);
             --group-color-rgb: 239, 68, 68;
         }
+
+        /* Tabs */
+        .tabs-container {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+            overflow-x: auto;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .tab-button {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            padding: 0.75rem 1.25rem;
+            border-radius: 8px 8px 0 0;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            margin-bottom: -1px;
+        }
+
+        .tab-button:hover {
+            color: var(--group-color, var(--text-primary));
+            background: rgba(var(--group-color-rgb, 99, 102, 241), 0.1);
+        }
+
+        .tab-button.active {
+            background: var(--bg-secondary);
+            border-bottom-color: var(--bg-secondary);
+            color: var(--group-color, var(--accent-primary));
+            border-top: 2px solid var(--group-color, var(--accent-primary));
+        }
     </style>
 </head>
 
@@ -473,8 +508,22 @@
             <div class="config-grid">
                 <div class="input-group">
                     <label for="nagUrl">NAG URL</label>
-                    <input type="text" id="nagUrl" value="https://nag.circularlabs.io/NAG.php?cep="
+                    <input type="text" id="nagUrl" value="https://nag.circularlabs.io/NAG_Mainnet.php?cep="
                         placeholder="Enter NAG URL">
+                </div>
+                <div class="input-group">
+                    <label for="endpointSelect">Endpoint Preset</label>
+                    <select id="endpointSelect" onchange="updateNAGUrl()">
+                        <option value="https://nag.circularlabs.io/NAG_Mainnet.php?cep=" selected>Production (Mainnet)
+                        </option>
+                        <option value="https://nag.circularlabs.io/NAG.php?cep=">Testnet</option>
+                        <option value="https://nag.circularlabs.io/NAG_Devnet.php?cep=">Devnet</option>
+                        <option value="http://localhost:8080/NAG.php?cep=">Go SDK (Local Proxy - :8080)</option>
+                        <option value="http://localhost:8000/NAG.php?cep=">PHP SDK (Local Proxy - :8000)</option>
+                        <option value="http://localhost:5000/NAG.php?cep=">Python SDK (Local Proxy - :5000)</option>
+                        <option value="http://localhost:8081/NAG.php?cep=">Dart SDK (Local Proxy - :8081)</option>
+                        <option value="custom">Custom</option>
+                    </select>
                 </div>
                 <div class="input-group">
                     <label for="nagKey">NAG Key</label>
@@ -482,6 +531,9 @@
                 </div>
             </div>
         </div>
+
+        <!-- Tabs -->
+        <div id="tabContainer" class="tabs-container"></div>
 
         <!-- API Groups -->
         <div id="apiGroups"></div>
@@ -848,29 +900,35 @@
 
         console.log('✅ Browser-compatible Circular Protocol API ready');
 
-        // Render API groups
+        // Render API groups with Tabs
         function renderAPIGroups() {
             const container = document.getElementById('apiGroups');
+            const tabContainer = document.getElementById('tabContainer');
+            let firstGroup = true;
 
             for (const [groupName, groupData] of Object.entries(apiMethods)) {
+                // Create Tab
+                const tab = document.createElement('button');
+                tab.className = `tab-button ${groupColorClasses[groupName] || ''} ${firstGroup ? 'active' : ''}`;
+                tab.textContent = groupName;
+                tab.onclick = () => switchTab(groupName);
+                tabContainer.appendChild(tab);
+
+                // Create Group Content
                 const groupDiv = document.createElement('div');
-                groupDiv.className = `api-group ${groupColorClasses[groupName] || ''}`;
+                groupDiv.id = `group-${groupName.replace(/\s+/g, '-')}`;
+                groupDiv.className = `api-group ${groupColorClasses[groupName] || ''} ${firstGroup ? '' : 'hidden'}`;
 
                 const header = document.createElement('div');
                 header.className = 'group-header';
+                header.style.cursor = 'default'; // Disable toggle on header since we have tabs
                 header.innerHTML = `
                     <div class="group-title">
                         <span class="group-icon">${groupData.icon}</span>
                         <span>${groupName}</span>
                         <span class="status-badge" style="background: rgba(99, 102, 241, 0.2); color: var(--accent-primary);">${groupData.methods.length}</span>
                     </div>
-                    <span class="toggle-icon">▼</span>
                 `;
-
-                header.addEventListener('click', () => {
-                    groupDiv.classList.toggle('collapsed');
-                    content.classList.toggle('hidden');
-                });
 
                 const content = document.createElement('div');
                 content.className = 'group-content';
@@ -883,6 +941,32 @@
                 groupDiv.appendChild(header);
                 groupDiv.appendChild(content);
                 container.appendChild(groupDiv);
+
+                firstGroup = false;
+            }
+        }
+
+        // Switch Tab
+        function switchTab(selectedGroupName) {
+            // Update Tab Buttons
+            const tabs = document.querySelectorAll('.tab-button');
+            tabs.forEach(tab => {
+                if (tab.textContent === selectedGroupName) {
+                    tab.classList.add('active');
+                } else {
+                    tab.classList.remove('active');
+                }
+            });
+
+            // Show/Hide Groups
+            for (const groupName of Object.keys(apiMethods)) {
+                const groupId = `group-${groupName.replace(/\s+/g, '-')}`;
+                const groupDiv = document.getElementById(groupId);
+                if (groupName === selectedGroupName) {
+                    groupDiv.classList.remove('hidden');
+                } else {
+                    groupDiv.classList.add('hidden');
+                }
             }
         }
 
@@ -952,6 +1036,11 @@
                 return;
             }
 
+            // Update SDK configuration
+            if (CircularAPI.setNAGURL) {
+                CircularAPI.setNAGURL(nagUrl);
+            }
+
             // Collect parameters
             const params = method.params.map(param => {
                 const input = document.getElementById(`${method.name}_${param.name}`);
@@ -959,7 +1048,7 @@
 
                 // Convert to appropriate type
                 if (param.type === 'number') {
-                    return parseInt(value, 10);
+                    return Number(value);
                 }
                 return value;
             });
@@ -1062,6 +1151,15 @@
                     btn.textContent = originalText;
                 }, 2000);
             });
+        };
+
+        // Update NAG URL based on selection
+        window.updateNAGUrl = function () {
+            const select = document.getElementById('endpointSelect');
+            const input = document.getElementById('nagUrl');
+            if (select.value !== 'custom') {
+                input.value = select.value;
+            }
         };
 
         // Initialize
