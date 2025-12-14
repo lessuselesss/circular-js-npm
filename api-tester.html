@@ -883,6 +883,11 @@
         // Import from bundle
         const CircularAPI = window.CircularProtocolAPI;
 
+        if (!CircularAPI) {
+            console.error("Circular Protocol API library failed to load.");
+            alert("Library missing! Check console.");
+        }
+
 
         // Map group names to CSS classes for color coding
         const groupColorClasses = {
@@ -934,7 +939,7 @@
                 content.className = 'group-content';
 
                 groupData.methods.forEach(method => {
-                    const methodDiv = createMethodElement(method);
+                    const methodDiv = createMethodElement(method, groupName);
                     content.appendChild(methodDiv);
                 });
 
@@ -971,7 +976,8 @@
         }
 
         // Create method element
-        function createMethodElement(method) {
+        function createMethodElement(method, groupName) {
+            const safeGroupName = groupName.replace(/\s+/g, '_');
             const div = document.createElement('div');
             div.className = 'api-method';
 
@@ -1006,7 +1012,7 @@
                 }
 
                 input.placeholder = param.placeholder || '';
-                input.id = `${method.name}_${param.name}`;
+                input.id = `${safeGroupName}_${method.name}_${param.name}`;
                 inputGroup.appendChild(input);
 
                 paramRow.appendChild(label);
@@ -1016,7 +1022,7 @@
 
             const executeBtn = document.createElement('button');
             executeBtn.textContent = 'Execute';
-            executeBtn.onclick = () => executeMethod(method);
+            executeBtn.onclick = () => executeMethod(method, groupName);
 
             div.appendChild(header);
             if (method.params.length > 0) {
@@ -1028,9 +1034,12 @@
         }
 
         // Execute API method
-        async function executeMethod(method) {
+        async function executeMethod(method, groupName) {
+            const safeGroupName = groupName.replace(/\s+/g, '_');
             // Get NAG URL validation
             const nagUrl = document.getElementById('nagUrl').value;
+            const nagKey = document.getElementById('nagKey').value;
+
             if (!nagUrl) {
                 displayResponse({ error: 'Please configure NAG URL in the configuration section.' }, false);
                 return;
@@ -1040,10 +1049,13 @@
             if (CircularAPI.setNAGURL) {
                 CircularAPI.setNAGURL(nagUrl);
             }
+            if (nagKey && CircularAPI.setNAGKey) {
+                CircularAPI.setNAGKey(nagKey);
+            }
 
             // Collect parameters
             const params = method.params.map(param => {
-                const input = document.getElementById(`${method.name}_${param.name}`);
+                const input = document.getElementById(`${safeGroupName}_${method.name}_${param.name}`);
                 const value = input.value;
 
                 // Convert to appropriate type
@@ -1063,6 +1075,10 @@
                     // Execute local utility functions
                     result = await executeLocalMethod(method.name, params);
                 } else {
+                    // Ensure method exists
+                    if (!CircularAPI[method.name]) {
+                        throw new Error(`Method ${method.name} does not exist in the library.`);
+                    }
                     // Execute API method
                     result = await CircularAPI[method.name](...params);
                 }
