@@ -1,7 +1,10 @@
 const path = require('path');
 const webpack = require('webpack');
 
-module.exports = {
+const path = require('path');
+const webpack = require('webpack');
+
+const browserConfig = {
   entry: './lib/index.js',
   output: {
     filename: 'circular-api-bundle.js',
@@ -33,3 +36,24 @@ module.exports = {
     }),
   ],
 };
+
+const nodeConfig = {
+  entry: './lib/index.js',
+  target: 'node',
+  output: {
+    filename: 'index.cjs',
+    path: path.resolve(__dirname, 'lib'),
+    library: {
+      type: 'commonjs',
+    },
+  },
+  mode: 'production',
+  externals: {
+    'elliptic': 'elliptic',
+    'node-fetch': 'node-fetch',
+    'sha256': 'sha256',
+    'crypto': 'crypto' // Native node crypto
+  },
+};
+
+module.exports = [browserConfig, nodeConfig];
